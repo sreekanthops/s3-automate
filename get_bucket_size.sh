@@ -85,14 +85,17 @@ echo "--------------------------------------------------------------------------
   echo   echo $j >> sc
   done
   done
+   echo "------------------------------------------------------------------------------------"
+   echo "display date based on month's/year's old data for each storage class"
+   echo "------------------------------------------------------------------------------------"
    cat sc  | awk -F, '{print $1,$2,$3} NR==3{exit}' | sed 's/ //g' | sed "s/$/,/g" > storageclass
- echo "StorageClass, 1month, 2month's, 3month's, 6month's, 1year, 2year's"
-  pr -mts' ' storageclass 1.size 2.size 3.size 6.size 12.size 24.size | column -s, -t 
-  echo "StorageClass, 1month, 2month's, 3month's, 6month's, 1year, 2year's" > $bucket_name.olddata
-  pr -mts' ' storageclass 1.size 2.size 3.size 6.size 12.size 24.size | column -s, -t >> $bucket_name.olddata.csv
- echo "------------------------------------------------------------------------------------"
-  echo "Note: $bucket_name.olddata.csv file is created to view in excel sheet"
-  echo "------------------------------------------------------------------------------------"
+   echo "StorageClass, 1month, 2month's, 3month's, 6month's, 1year, 2year's"
+   pr -mts' ' storageclass 1.size 2.size 3.size 6.size 12.size 24.size | column -s, -t 
+   echo "StorageClass, 1month, 2month's, 3month's, 6month's, 1year, 2year's" > $bucket_name.olddata
+   pr -mts' ' storageclass 1.size 2.size 3.size 6.size 12.size 24.size | column -s, -t >> $bucket_name.olddata.csv
+   echo "------------------------------------------------------------------------------------"
+   echo "Note: $bucket_name.olddata.csv file is created to view in excel sheet"
+   echo "------------------------------------------------------------------------------------"
 
   rm *.size 
 }

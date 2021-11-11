@@ -79,23 +79,23 @@ echo "--------------------------------------------------------------------------
   storageclasses="STANDARD STANDARD_IA GLACIER"
   for j in $storageclasses
   do
-  sc=$(aws s3api list-object-versions --bucket $bucket_name --query "Versions[?LastModified>='$date' && StorageClass=='$j'].[Size]" | \
+  sc=$(aws s3api list-object-versions --bucket $bucket_name --query "Versions[?LastModified<'$date' && StorageClass=='$j'].[Size]" | \
   sed 's/[][]//g' | awk '{ sum += $1 } END { print sum }')
   echo "$(echo $sc | awk '{print $0/1024/1024/1024" GB"}' | sed "s/$/,/g" )" >> $i.size
   echo   echo $j >> sc
   done
   done
    echo "------------------------------------------------------------------------------------"
-   echo "display date based on month's/year's old data for each storage class"
+   echo "display data based on month's/year's old data for each storage class ex:1month, display morethan 1 month old data"
    echo "------------------------------------------------------------------------------------"
    cat sc  | awk -F, '{print $1,$2,$3} NR==3{exit}' | sed 's/ //g' | sed "s/$/,/g" > storageclass
    echo "StorageClass, 1month, 2month's, 3month's, 6month's, 1year, 2year's"
-   pr -mts' ' storageclass 1.size 2.size 3.size 6.size 12.size 24.size | column -s, -t 
-   echo "StorageClass, 1month, 2month's, 3month's, 6month's, 1year, 2year's" > $bucket_name.olddata
-   pr -mts' ' storageclass 1.size 2.size 3.size 6.size 12.size 24.size | column -s, -t >> $bucket_name.olddata.csv
-   echo "------------------------------------------------------------------------------------"
-   echo "Note: $bucket_name.olddata.csv file is created to view in excel sheet"
-   echo "------------------------------------------------------------------------------------"
+  pr -mts' ' storageclass 1.size 2.size 3.size 6.size 12.size 24.size | column -s, -t 
+  echo "StorageClass, 1month, 2month's, 3month's, 6month's, 1year, 2year's" > $bucket_name.olddata
+  pr -mts' ' storageclass 1.size 2.size 3.size 6.size 12.size 24.size | column -s, -t >> $bucket_name.olddata.csv
+ echo "------------------------------------------------------------------------------------"
+  echo "Note: $bucket_name.olddata.csv file is created to view in excel sheet"
+  echo "------------------------------------------------------------------------------------"
 
   rm *.size 
 }
@@ -161,13 +161,13 @@ merge
 }
 merge()
 {
-#######merge 3 files into tabular format#######
+#######merge objects(*.file) files into tabular format#######
 echo "objects, no_of_current_objects, no_of_current_n_non_current_objects, size_of_object(MB's), size_of_object(GB's), size_of_object(TB's)" > $bucket_name.table.csv
 pr -mts' ' $bucket_name.list_objects.file $bucket_name.no_of_current_objects.file $bucket_name.no_of_current_n_non_current_objects.file $bucket_name.size_of_object_MB.file $bucket_name.size_of_object_GB.file $bucket_name.size_of_object_TB.file >> $bucket_name.table.csv
 echo "------------------------------------------------------------------------------------"
 echo "objects, no_of_current_objects, no_of_current_n_non_current_objects, size_of_object(MB's), size_of_object(GB's), size_of_object(TB's)" | column -s, -t 
 pr -mts' ' $bucket_name.list_objects.file $bucket_name.no_of_current_objects.file $bucket_name.no_of_current_n_non_current_objects.file $bucket_name.size_of_object_MB.file $bucket_name.size_of_object_GB.file $bucket_name.size_of_object_TB.file
-echo "-----------------------------------------------------------"
+echo "------------------------------------------------------------------------------------"
 echo "Note: $bucket_name.table.csv file is created to view in excel sheet"
 echo "------------------------------------------------------------------------------------"
 #######delete created files#######

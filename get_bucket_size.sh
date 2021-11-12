@@ -71,25 +71,32 @@ echo "--------------------------------------------------------------------------
 ###########################################################
 #check size based on month's/years's# 
 ###########################################################
-
+   echo ">1month," > 1.size
+   echo ">2month's," > 2.size
+   echo ">3month's," > 3.size
+   echo ">6month's," > 6.size
+   echo ">1year," > 12.size
+   echo ">2year's," > 24.size
   time="1 2 3 6 12 24"
+  storageclasses="STANDARD STANDARD_IA GLACIER"
+  #size="StorageClass,   >1month,   >2month's,   >3month's,   >6month's,   >1year,   >2year's"
   for i in $time
   do
-  date=$(date -d "$(date +%Y-%m-1) -$i month" +%-Y-%m-%d)
-  storageclasses="STANDARD STANDARD_IA GLACIER"
-  for j in $storageclasses
-  do
-  sc=$(aws s3api list-object-versions --bucket $bucket_name --query "Versions[?LastModified<'$date' && StorageClass=='$j'].[Size]" | \
-  sed 's/[][]//g' | awk '{ sum += $1 } END { print sum }')
-  echo "$(echo $sc | awk '{print $0/1024/1024/1024" GB"}' | sed "s/$/,/g" )" >> $i.size
-  echo $j >> sc
-  done
+    for j in $storageclasses
+    do
+        date=$(date -d "$(date +%Y-%m-1) -$i month" +%-Y-%m-%d)      
+        sc=$(aws s3api list-object-versions --bucket $bucket_name --query "Versions[?LastModified<'$date' && StorageClass=='$j'].[Size]" | \
+        sed 's/[][]//g' | awk '{ sum += $1 } END { print sum }')
+        #echo "$k" >> $i.size 
+        echo "$(echo $sc | awk '{print $0/1024/1024/1024" GB"}' | sed "s/$/,/g" )" >> $i.size
+        echo $j >> sc
+    done
   done
    echo "------------------------------------------------------------------------------------"
    echo "display data based on month's/year's old data for each storage class ex:1month, display morethan 1 month old data"
    echo "------------------------------------------------------------------------------------"
-   cat sc  | awk -F, '{print $1,$2,$3} NR==3{exit}' | sed 's/ //g' | sed "s/$/,/g" > storageclass
-   echo "StorageClass,   >1month,   >2month's,   >3month's,   >6month's,   >1year,   >2year's"
+   sed  -i '1i STORAGECLASSES' sc
+   cat sc  | awk -F, '{print $1,$2,$3,$4} NR==4{exit}' | sed 's/ //g' | sed "s/$/,/g" > storageclass
   pr -mts' ' storageclass 1.size 2.size 3.size 6.size 12.size 24.size | column -s, -t 
   echo "StorageClass, 1month, 2month's, 3month's, 6month's, 1year, 2year's" > $bucket_name.olddata
   pr -mts' ' storageclass 1.size 2.size 3.size 6.size 12.size 24.size | column -s, -t >> $bucket_name.olddata.csv

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#run script ./get_bucket_size.sh <$bucket_name>
+#run script ./get_bucket_size.sh <bucket_name>
 # usecase: get the no of objects and each object size 
 # and get the total bucket size 
 ###########################################################
@@ -65,7 +65,7 @@ echo "GB:$(echo $sc | awk '{print $0/1024/1024/1024" GB"}')"
 echo "TB:$(echo $sc | awk '{print $0/1024/1024/1024/1024" TB"}')"
 echo "------------------------------------------------------------------------------------"
 done
-echo "please wait, it might take sometime…!!!"
+echo "please wait, it might take sometime�!!!"
 echo "------------------------------------------------------------------------------------"
 
 ###########################################################
@@ -82,14 +82,14 @@ echo "--------------------------------------------------------------------------
   sc=$(aws s3api list-object-versions --bucket $bucket_name --query "Versions[?LastModified<'$date' && StorageClass=='$j'].[Size]" | \
   sed 's/[][]//g' | awk '{ sum += $1 } END { print sum }')
   echo "$(echo $sc | awk '{print $0/1024/1024/1024" GB"}' | sed "s/$/,/g" )" >> $i.size
-  echo   echo $j >> sc
+  echo $j >> sc
   done
   done
    echo "------------------------------------------------------------------------------------"
    echo "display data based on month's/year's old data for each storage class ex:1month, display morethan 1 month old data"
    echo "------------------------------------------------------------------------------------"
    cat sc  | awk -F, '{print $1,$2,$3} NR==3{exit}' | sed 's/ //g' | sed "s/$/,/g" > storageclass
-   echo "StorageClass, 1month, 2month's, 3month's, 6month's, 1year, 2year's"
+   echo "StorageClass,   >1month,   >2month's,   >3month's,   >6month's,   >1year,   >2year's"
   pr -mts' ' storageclass 1.size 2.size 3.size 6.size 12.size 24.size | column -s, -t 
   echo "StorageClass, 1month, 2month's, 3month's, 6month's, 1year, 2year's" > $bucket_name.olddata
   pr -mts' ' storageclass 1.size 2.size 3.size 6.size 12.size 24.size | column -s, -t >> $bucket_name.olddata.csv

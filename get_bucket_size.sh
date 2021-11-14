@@ -60,12 +60,22 @@ for i in $storageclasses
 do
 echo "SIZE of $i StorageClass(MB's,GB's,TB's)"
 sc=$(aws s3api list-object-versions --bucket $bucket_name --query "Versions[?StorageClass=='$i'].[Size]"| sed 's/[][]//g' | sed 's/,//g' | awk '{ sum += $1 } END { print sum }')
-echo "MB:$(echo $sc | awk '{print $0/1024/1024" MB"}')"
-echo "GB:$(echo $sc | awk '{print $0/1024/1024/1024" GB"}')"
-echo "TB:$(echo $sc | awk '{print $0/1024/1024/1024/1024" TB"}')"
+MB=$(echo $(echo $sc | awk '{print $0/1024/1024}'))
+echo "$MB MB"
+GB=$(echo $(echo $sc | awk '{print $0/1024/1024/1024}'))
+echo "$GB GB"
+TB=$(echo $(echo $sc | awk '{print $0/1024/1024/1024/1024}'))
+echo "$TB TB"
 echo "------------------------------------------------------------------------------------"
+if [ $i == "STANDARD" ];then
+echo \$0$(bc <<< "$GB  * 0.023") | sed 's/ //g' >> price-est
+elif [ $i == "STANDARD_IA" ];then
+echo \$0$(bc <<< "$GB * 0.0125") | sed 's/ //g' >> price-est
+else
+echo \$0$(bc <<< "$GB  * 0.004") | sed 's/ //g'>> price-est
+fi
 done
-echo "please wait, it might take sometime�!!!"
+echo "please wait, it might take sometime...!!!"
 echo "------------------------------------------------------------------------------------"
 
 ###########################################################
@@ -85,26 +95,31 @@ echo "--------------------------------------------------------------------------
     for j in $storageclasses
     do
         date=$(date -d "$(date +%Y-%m-1) -$i month" +%-Y-%m-%d)      
-        sc=$(aws s3api list-object-versions --bucket $bucket_name --query "Versions[?LastModified<'$date' && StorageClass=='$j'].[Size]" | \
+        above=$(aws s3api list-object-versions --bucket $bucket_name --query "Versions[?LastModified<'$date' && StorageClass=='$j'].[Size]" | \
         sed 's/[][]//g' | awk '{ sum += $1 } END { print sum }')
-        #echo "$k" >> $i.size 
-        echo "$(echo $sc | awk '{print $0/1024/1024/1024" GB"}' | sed "s/$/,/g" )" >> $i.size
+        echo "$(echo $above | awk '{print $0/1024/1024/1024" GB"}' | sed 's/ //g' | sed "s/$/,/g" )" >> $i.size
         echo $j >> sc
+        if [ $i == "1" ];then
+         current=$(aws s3api list-object-versions --bucket $bucket_name --query "Versions[?LastModified>'$date' && StorageClass=='$j'].[Size]" | \
+         sed 's/[][]//g' | awk '{ sum += $1 } END { print sum }')
+         echo "$(echo $current | awk '{print $0/1024/1024/1024" GB"}' | sed 's/ //g' | sed "s/$/,/g" )" >> current
+        fi
     done
   done
    echo "------------------------------------------------------------------------------------"
    echo "display data based on month's/year's old data for each storage class ex:1month, display morethan 1 month old data"
    echo "------------------------------------------------------------------------------------"
    sed  -i '1i STORAGECLASSES' sc
+   sed  -i '1i <1month' current
+   sed  -i '1i price-est/month' price-est
    cat sc  | awk -F, '{print $1,$2,$3,$4} NR==4{exit}' | sed 's/ //g' | sed "s/$/,/g" > storageclass
-  pr -mts' ' storageclass 1.size 2.size 3.size 6.size 12.size 24.size | column -s, -t 
-  echo "StorageClass, 1month, 2month's, 3month's, 6month's, 1year, 2year's" > $bucket_name.olddata
-  pr -mts' ' storageclass 1.size 2.size 3.size 6.size 12.size 24.size | column -s, -t >> $bucket_name.olddata.csv
- echo "------------------------------------------------------------------------------------"
-  echo "Note: $bucket_name.olddata.csv file is created to view in excel sheet"
-  echo "------------------------------------------------------------------------------------"
-
-  rm *.size 
+   pr -mts' ' storageclass current 1.size 2.size 3.size 6.size 12.size 24.size price-est | column -s, -t 
+   echo "StorageClass, <1month,   >1month, >2month's, >3month's, >6month's, >1year, >2year's, price-est/month" > $bucket_name.olddata
+   pr -mts' ' storageclass current 1.size 2.size 3.size 6.size 12.size 24.size price-est | column -s, -t >> $bucket_name.olddata.csv
+   echo "------------------------------------------------------------------------------------"
+   echo "Note: $bucket_name.olddata.csv file is created to view in excel sheet"
+   echo "------------------------------------------------------------------------------------"
+   rm *.size current price-est sc storageclass
 }
 ####get the total bucket size and its no of objects####
 getbucketsize()

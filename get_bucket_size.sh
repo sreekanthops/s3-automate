@@ -75,6 +75,11 @@ else
 echo \$0$(bc <<< "$GB  * 0.004") | sed 's/ //g'>> price-est
 fi
 done
+echo "------------------------------------------------------------------------------------"
+echo "------------------------------------------------------------------------------------"
+echo "Total estimated cost per month is: \$$(cat price-est | sed 's/\$//' | awk '{ sum += $1 } END { print sum }')"
+echo "------------------------------------------------------------------------------------"
+echo "------------------------------------------------------------------------------------"
 echo "please wait, it might take sometime...!!!"
 echo "------------------------------------------------------------------------------------"
 
@@ -116,10 +121,11 @@ echo "--------------------------------------------------------------------------
    pr -mts' ' storageclass current 1.size 2.size 3.size 6.size 12.size 24.size price-est | column -s, -t 
    echo "StorageClass, <1month,   >1month, >2month's, >3month's, >6month's, >1year, >2year's, price-est/month" > $bucket_name.olddata
    pr -mts' ' storageclass current 1.size 2.size 3.size 6.size 12.size 24.size price-est | column -s, -t >> $bucket_name.olddata.csv
+   cat price-est > calculate
    echo "------------------------------------------------------------------------------------"
    echo "Note: $bucket_name.olddata.csv file is created to view in excel sheet"
    echo "------------------------------------------------------------------------------------"
-   rm *.size current price-est sc storageclass
+   rm *.size current price-est sc storageclass calculate
 }
 ####get the total bucket size and its no of objects####
 getbucketsize()

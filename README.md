@@ -7,7 +7,7 @@
 `chmod +x script`
 ## features
 - get total bucket size(current and non current versions)
-- get size based each storage classes(only STANDARD STANDARD IA GLACIER)
+- get size based on each storage classes(only STANDARD STANDARD IA GLACIER)
 - cost estimation based on size on above storage classes
 - print size based on current month and morethan months
 - print number of objects at prefix level (current and non current versions)

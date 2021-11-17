@@ -5,6 +5,12 @@
 `aws configure`
 ## download the script file and give execute permissions
 `chmod +x script`
+## features
+- get total bucket size(current and non current versions)
+- get size based each storage classes(only STANDARD STANDARD IA GLACIER)
+- cost estimation based on size on above storage classes
+- print size based current and above period of time
+- print number of objects(current and non current versions)
 ## run script
 `./script <bucketname>`
 
